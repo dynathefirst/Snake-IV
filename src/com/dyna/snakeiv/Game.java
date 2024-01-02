@@ -1,7 +1,5 @@
 package com.dyna.snakeiv;
 
-import com.dyna.snakeiv.gfx.Graphics;
-
 import javax.swing.*;
 
 public class Game extends JFrame {
