@@ -26,6 +26,8 @@ public class Graphics extends JPanel implements ActionListener {
     Apple apple;
     int applesEaten;
 
+    int scoreHeight = WIDTH/2;
+
     char direction = 'R';
     boolean isMoving = false;
     final Timer timer = new Timer(150, this);
@@ -103,7 +105,8 @@ public class Graphics extends JPanel implements ActionListener {
                 System.out.println("high: " + longestSnakeLength);
                 g.setColor(Color.WHITE);
                 g.setFont(font);
-                g.drawString(scoreText, (WIDTH - getFontMetrics(g.getFont()).stringWidth(scoreText)) / 2, HEIGHT / 2);
+                g.drawString(scoreText, (WIDTH - getFontMetrics(g.getFont()).stringWidth(scoreText)) / 2, scoreHeight);
+                g.drawString(highscoreText, (WIDTH - getFontMetrics(g.getFont()).stringWidth(highscoreText)) / 2, scoreHeight + 25);
             }
         }
     }
