@@ -94,7 +94,7 @@ public class Graphics extends JPanel implements ActionListener {
                 g.fillRect(snakePosX[i], snakePosY[i], TICK_SIZE, TICK_SIZE);
             }
         } else {
-            if (longestSnakeLength.equals("")) {
+            if (!longestSnakeLength.equals("")) {
                 longestSnakeLength = this.getLongestSnake();
 
                 String scoreText = String.format("score: " + applesEaten);
@@ -165,7 +165,7 @@ public class Graphics extends JPanel implements ActionListener {
     }
 
     public void checkLongest() {
-        if (snakeLength > Integer.parseInt((longestSnakeLength.split(": ")[1]))) {
+        if (longestSnakeLength.equals("") || snakeLength > Integer.parseInt((longestSnakeLength.split(": ")[1]))) {
             String name = JOptionPane.showInputDialog("New High! What is your name?");
             longestSnakeLength = name + ": " + snakeLength;
 
