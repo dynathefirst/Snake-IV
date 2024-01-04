@@ -1,6 +1,8 @@
 package com.dyna.snakeiv;
 
 import com.dyna.snakeiv.food.Apple;
+import com.dyna.snakeiv.food.Bomb;
+import com.dyna.snakeiv.food.Orange;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,8 +11,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.*;
+import java.util.Random;
 
 public class Graphics extends JPanel implements ActionListener {
+    private static final Random random = new Random();
     public static final int WIDTH = 800;
     public static final int HEIGHT = 800;
     public static final int TICK_SIZE = 50;
@@ -21,12 +25,17 @@ public class Graphics extends JPanel implements ActionListener {
     int[] snakePosX = new int[BOARD_SIZE];
     int[] snakePosY = new int[BOARD_SIZE];
     int snakeLength;
-    String longestSnakeLength = "";
+    String highestScore = "";
 
     Apple apple;
+    Orange orange;
+    Bomb bomb;
     int applesEaten;
+    int orangesEaten;
+    int bombsEaten;
+    int bombsEaten2;
 
-    int scoreHeight = WIDTH/2;
+    int scoreHeight = WIDTH / 2;
 
     char direction = 'R';
     boolean isMoving = false;
@@ -76,9 +85,14 @@ public class Graphics extends JPanel implements ActionListener {
         snakePosY = new int[BOARD_SIZE];
         snakeLength = 1;
         applesEaten = 0;
+        orangesEaten = 0;
+        bombsEaten = 0;
+        bombsEaten2 = 0;
         direction = 'R';
         isMoving = true;
         spawnFood();
+        spawnFood2();
+        spawnBomb();
         timer.start();
     }
 
@@ -88,21 +102,31 @@ public class Graphics extends JPanel implements ActionListener {
         String newline = System.lineSeparator();
 
         if (isMoving) {
+            //apple
             g.setColor(Color.RED);
             g.fillRect(apple.getPosX(), apple.getPosY(), TICK_SIZE, TICK_SIZE);
 
+            //orange
+            g.setColor(Color.ORANGE);
+            g.fillRect(orange.getPosX(), orange.getPosY(), TICK_SIZE, TICK_SIZE);
+
+            //bomb
+            g.setColor(Color.DARK_GRAY);
+            g.fillRect(bomb.getPosX(), bomb.getPosY(), TICK_SIZE, TICK_SIZE);
+
+            //snake
             g.setColor(Color.GREEN);
             for (int i = 0; i < snakeLength; i++) {
                 g.fillRect(snakePosX[i], snakePosY[i], TICK_SIZE, TICK_SIZE);
             }
         } else {
-            if (!longestSnakeLength.equals("")) {
-                longestSnakeLength = this.getLongestSnake();
+            if (!highestScore.equals("")) {
+                highestScore = this.getHighestScore();
 
-                String scoreText = String.format("score: " + applesEaten);
-                String highscoreText = String.format("high: " + longestSnakeLength);
-                System.out.println("score: " + applesEaten);
-                System.out.println("high: " + longestSnakeLength);
+                String scoreText = String.format("score: " + ((applesEaten + (orangesEaten * 2)) - ((bombsEaten - bombsEaten2))));
+                String highscoreText = String.format("high: " + highestScore);
+                System.out.println("score: " + ((applesEaten + (orangesEaten * 2)) - ((bombsEaten - bombsEaten2))));
+                System.out.println("high: " + highestScore);
                 g.setColor(Color.WHITE);
                 g.setFont(font);
                 g.drawString(scoreText, (WIDTH - getFontMetrics(g.getFont()).stringWidth(scoreText)) / 2, scoreHeight);
@@ -127,13 +151,38 @@ public class Graphics extends JPanel implements ActionListener {
 
     protected void spawnFood() {
         apple = new Apple();
+        bomb = new Bomb();
     }
 
-    protected void eatFood() {
+    protected void spawnFood2() {
+        orange = new Orange();
+        bomb = new Bomb();
+    }
+
+    protected void spawnBomb() {
+        bomb = new Bomb();
+    }
+
+    protected void eatApple() {
         if ((snakePosX[0] == apple.getPosX()) && (snakePosY[0] == apple.getPosY())) {
             snakeLength++;
             applesEaten++;
             spawnFood();
+        }
+    }
+
+    protected void eatOrange() {
+        if ((snakePosX[0] == orange.getPosX()) && (snakePosY[0] == orange.getPosY())) {
+            snakeLength++;
+            orangesEaten++;
+            spawnFood2();
+        }
+    }
+
+    protected void eatBomb() {
+        if ((snakePosX[0] == bomb.getPosX()) && (snakePosY[0] == bomb.getPosY())) {
+            bombsEaten++;
+            spawnBomb();
         }
     }
 
@@ -144,6 +193,7 @@ public class Graphics extends JPanel implements ActionListener {
                 break;
             }
         }
+
 
         if (snakePosX[0] < 0 || snakePosX[0] > WIDTH - TICK_SIZE || snakePosY[0] < 0 || snakePosY[0] > HEIGHT - TICK_SIZE) {
             isMoving = false;
@@ -159,7 +209,9 @@ public class Graphics extends JPanel implements ActionListener {
         if (isMoving) {
             move();
             onCollision();
-            eatFood();
+            eatApple();
+            eatOrange();
+            eatBomb();
         }
         if (!isMoving) {
             checkLongest();
@@ -168,11 +220,11 @@ public class Graphics extends JPanel implements ActionListener {
     }
 
     public void checkLongest() {
-        if (longestSnakeLength.equals("") || snakeLength > Integer.parseInt((longestSnakeLength.split(": ")[1]))) {
+        if (highestScore.equals("") || snakeLength > Integer.parseInt((highestScore.split(": ")[1]))) {
             String name = JOptionPane.showInputDialog("New High! What is your name?");
-            longestSnakeLength = name + ": " + snakeLength;
+            highestScore = name + ": " + snakeLength;
 
-            File longestSnakeHighFile = new File("longestsnake.txt");
+            File longestSnakeHighFile = new File("high.txt");
             if (!longestSnakeHighFile.exists()) {
                 try {
                     longestSnakeHighFile.createNewFile();
@@ -185,7 +237,7 @@ public class Graphics extends JPanel implements ActionListener {
             try {
                 writeFile = new FileWriter(longestSnakeHighFile);
                 writer = new BufferedWriter(writeFile);
-                writer.write(this.longestSnakeLength);
+                writer.write(this.highestScore);
             } catch (Exception e) {
                 //errors
             } finally {
@@ -200,11 +252,11 @@ public class Graphics extends JPanel implements ActionListener {
         }
     }
 
-    private String getLongestSnake() {
+    private String getHighestScore() {
         FileReader readFile = null;
         BufferedReader reader = null;
         try {
-            readFile = new FileReader("longestsnake.txt");
+            readFile = new FileReader("high.txt");
             reader = new BufferedReader(readFile);
             return reader.readLine();
         } catch (Exception e) {
